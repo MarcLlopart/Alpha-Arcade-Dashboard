@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: mainnet
+    database: mainnet  # Your actual ClickHouse database name
+    tables:
+      - name: app
+        description: "Application contracts table"
+      - name: account
+        description: "Accounts table"  
+      - name: txn
+        description: "Transactions table"
+
+models:
+  - name: stg_alpha_markets
+    description: "Alpha Arcade market contracts"
+    columns:
+      - name: market_id
+        description: "Unique market identifier"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_alpha_accounts
+    description: "Alpha Arcade accounts"
+    
+  - name: stg_escrow_accounts
+    description: "Escrow accounts for Alpha Arcade"
