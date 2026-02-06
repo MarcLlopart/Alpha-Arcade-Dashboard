@@ -43,7 +43,7 @@ jobs:
             outputs:
               dev:
                 type: clickhouse
-                host: ${{ secrets.DB_HOST }}
+                host: ${{ secrets.CLICKHOUSE_HOST }}
                 port: ${{ secrets.DB_PORT }}
                 user: ${{ secrets.DB_USER }}
                 password: ${{ secrets.DB_PASS }}
