@@ -1,0 +1,57 @@
+name: dbt Run
+
+on:
+  # Run on schedule (daily at 0:00 AM UTC)
+  schedule:
+    - cron: '0 0 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+  
+  # Run on push to main (optional)
+  push:
+    branches:
+      - main
+    paths:
+      - 'alpha_arcade/models/**'
+      - 'alpha_arcade/dbt_project.yml'
+
+jobs:
+  dbt_run:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.2'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          alpha_arcade:
+            target: dev
+            outputs:
+              dev:
+                type: clickhouse
+                host: ${{ secrets.DB_HOST }}
+                port: ${{ secrets.DB_PORT }}
+                user: ${{ secrets.DB_USER }}
+                password: ${{ secrets.DB_PASS }}
+                database: ${{ secrets.CLICKHOUSE_DATABASE }}
+                schema: ${{ secrets.CLICKHOUSE_SCHEMA }}
+                secure: false
+                verify: false
+          EOF
+      
+      - name: Run dbt models
+        run: dbt run --project-dir ./alpha_arcade
