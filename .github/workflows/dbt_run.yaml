@@ -53,5 +53,8 @@ jobs:
                 verify: false
           EOF
       
+      - name: Install dbt packages
+        run: dbt deps --project-dir ./alpha_arcade
+      
       - name: Run dbt models
         run: dbt run --project-dir ./alpha_arcade
