@@ -49,64 +49,66 @@ const Dashboard = () => {
             });
     }, []);
 
+    /* ===============================
+       FIX 1: Correct CSV mapping
+       Columns:
+       0 date
+       1 transactions
+       2 users
+       3 volume
+       4 fees
+       5 transactions_mtd
+       6 users_mtd
+       7 volume_mtd
+       8 fees_mtd
+       9 cumulative volume
+       10 cumulative fees
+    =============================== */
     const parseCSV = (csvText) => {
         const lines = csvText.trim().split('\n');
-        const headers = lines[0].split(',');
-        
-        const data = lines.slice(1).map(line => {
-            const values = line.split(',');
+        return lines.slice(1).map(line => {
+            const v = line.split(',');
             return {
-                date: values[0].replace(/"/g, ''), // Remove quotes from date
-                transactions: parseFloat(values[1]) || 0,
-                users: parseFloat(values[3]) || 0,
-                volume: parseFloat(values[4]) || 0,
-                cumVolume: parseFloat(values[5]) || 0,
-                fees: parseFloat(values[6]) || 0,
-                cumFees: parseFloat(values[7]) || 0,
+                date: v[0].replace(/"/g, ''),
+                transactions: +v[1] || 0,
+                users: +v[2] || 0,
+                volume: +v[3] || 0,
+                fees: +v[4] || 0,
+
+                transactions_mtd: +v[5] || 0,
+                users_mtd: +v[6] || 0,
+                volume_mtd: +v[7] || 0,
+                fees_mtd: +v[8] || 0,
+
+                cumVolume: +v[9] || 0,
+                cumFees: +v[10] || 0,
             };
         });
-    
-        return data;
     };
 
+    /* ===============================
+       FIX 2: MTD vs previous MTD delta
+    =============================== */
     const processedData = useMemo(() => {
-        if (!rawData || rawData.length === 0) return null;
+        if (!rawData || rawData.length < 2) return null;
 
-        const history = rawData.sort((a, b) => a.date.localeCompare(b.date));
-
-        // Calculate Deltas (current vs previous month)
+        const history = [...rawData].sort((a, b) => a.date.localeCompare(b.date));
         const currentMonth = history[history.length - 1];
         const previousMonth = history[history.length - 2];
 
-        let transactionsDelta = 0;
-        let usersDelta = 0;
-        let volumeDelta = 0;
-        let feesDelta = 0;
-
-        if (currentMonth && previousMonth) {
-            if (previousMonth.transactions > 0) {
-                transactionsDelta = ((currentMonth.transactions - previousMonth.transactions) / previousMonth.transactions) * 100;
-            }
-            if (previousMonth.users > 0) {
-                usersDelta = ((currentMonth.users - previousMonth.users) / previousMonth.users) * 100;
-            }
-            if (previousMonth.volume > 0) {
-                volumeDelta = ((currentMonth.volume - previousMonth.volume) / previousMonth.volume) * 100;
-            }
-            if (previousMonth.fees > 0) {
-                feesDelta = ((currentMonth.fees - previousMonth.fees) / previousMonth.fees) * 100;
-            }
-        }
+        const pct = (curr, prev) => prev > 0 ? ((curr - prev) / prev) * 100 : 0;
 
         return {
-            currentTransactions: currentMonth ? currentMonth.transactions : 0,
-            currentUsers: currentMonth ? currentMonth.users : 0,
-            currentVolume: currentMonth ? currentMonth.volume : 0,
-            currentFees: currentMonth ? currentMonth.fees : 0,
-            transactionsDelta,
-            usersDelta,
-            volumeDelta,
-            feesDelta,
+            currentTransactions: currentMonth.transactions_mtd,
+            currentUsers: currentMonth.users_mtd,
+            currentVolume: currentMonth.volume_mtd,
+            currentFees: currentMonth.fees_mtd,
+
+            transactionsDelta: pct(currentMonth.transactions_mtd, previousMonth.transactions_mtd),
+            usersDelta: pct(currentMonth.users_mtd, previousMonth.users_mtd),
+            volumeDelta: pct(currentMonth.volume_mtd, previousMonth.volume_mtd),
+            feesDelta: pct(currentMonth.fees_mtd, previousMonth.fees_mtd),
+
             history
         };
     }, [rawData]);
@@ -126,7 +128,9 @@ const Dashboard = () => {
         history 
     } = processedData || {};
 
-    // Chart Data Preparation
+    /* ===============================
+       Charts (unchanged)
+    =============================== */
     const chartData = history ? history.slice(-12).map(item => {
         const [year, month] = item.date.split('-');
         const date = new Date(parseInt(year), parseInt(month) - 1, 15);
@@ -135,10 +139,9 @@ const Dashboard = () => {
             transactions: item.transactions,
             users: item.users,
             volume: item.volume,
-            cumVolume: item.cumVolume,
             fees: item.fees,
+            cumVolume: item.cumVolume,
             cumFees: item.cumFees,
-            originalDate: item.date
         };
     }) : [];
 
