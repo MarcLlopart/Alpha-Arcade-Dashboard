@@ -58,11 +58,11 @@ const Dashboard = () => {
             return {
                 date: values[0].replace(/"/g, ''), // Remove quotes from date
                 transactions: parseFloat(values[1]) || 0,
-                users: parseFloat(values[5]) || 0,
-                volume: parseFloat(values[6]) || 0,
-                cumVolume: parseFloat(values[7]) || 0,
-                fees: parseFloat(values[8]) || 0,
-                cumFees: parseFloat(values[9]) || 0,
+                users: parseFloat(values[3]) || 0,
+                volume: parseFloat(values[4]) || 0,
+                cumVolume: parseFloat(values[5]) || 0,
+                fees: parseFloat(values[6]) || 0,
+                cumFees: parseFloat(values[7]) || 0,
             };
         });
     
@@ -332,7 +332,7 @@ const Dashboard = () => {
                             <Legend />
                             <Bar
                                 yAxisId="left"
-                                dataKey="fees"
+                                dataKey="volume"
                                 name="Monthly Volume"
                                 fill={isDarkMode ? "#17cac6" : "#830057"}
                                 radius={[4, 4, 0, 0]}
@@ -342,7 +342,7 @@ const Dashboard = () => {
                             <Line
                                 yAxisId="right"
                                 type="monotone"
-                                dataKey="cumFees"
+                                dataKey="cumVolume"
                                 name="All-time Volume"
                                 stroke={isDarkMode ? "#830057" : "#17cac6"}
                                 strokeWidth={2}
@@ -568,7 +568,7 @@ const Card = ({ title, value, delta, icon, isActive, onClick, formatValue = form
                 <div className={`card-delta ${isPositive ? 'positive' : 'negative'}`}>
                     {isPositive ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                     <span>{Math.abs(delta).toFixed(2)}%</span>
-                    <span className="delta-label">vs last month</span>
+                    <span className="delta-label">vs last month (MTD)</span>
                 </div>
             </div>
         </div>
